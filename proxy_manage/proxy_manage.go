@@ -85,8 +85,10 @@ func (self *ProxyManage) initProxyQueue() {
 							return fmt.Sprintf("%s://%s", rule["type"], item)
 						})
 
-						lo.ForEach(lo.Chunk(ps, 500), func(item []string, _ int) {
-							self.proxyQueryChan <- item
+						lo.ForEach(lo.Chunk(ps, 500), func(items []string, _ int) {
+							self.proxyQueryChan <- lo.Map(items, func(item string, index int) string {
+								return strings.Trim(item, " ")
+							})
 						})
 					} else {
 						logger.Printf("failed get proxy rule : %v\n", rule)

@@ -72,11 +72,10 @@ func HandleClient(client net.Conn, proxy *ttlcache.Cache[string, string]) {
 		return
 	}
 
-	req.Header.Del("Proxy-Authorization")
-
 	// Connect to the upstream SOCKS5 proxy
 	proxyAddr := proxy.Get(proxyAuth[0]).Value()
 	logger.Println("use proxy for", proxyAuth[0], proxyAddr, req.URL.Host)
+
 	dialer, err := proxyclient.NewProxyClient(proxyAddr)
 	if err != nil {
 		logger.Println("use proxy for", "proxy client", err.Error())
@@ -97,6 +96,8 @@ func HandleClient(client net.Conn, proxy *ttlcache.Cache[string, string]) {
 	if req.Method == http.MethodConnect {
 		sendHTTP(client, http.StatusOK, "text/plain", "")
 	} else {
+		req.Header.Del("Proxy-Authorization")
+		req.Header.Del("Proxy-Connection")
 		req.Write(targetSiteConn)
 	}
 
